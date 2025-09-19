@@ -346,7 +346,7 @@ class Ship(pygame.sprite.Sprite):
                 config.score += 50
                 player.health += 20
                 if player.health >= player.max_health:
-                    player.health = 100
+                    player.health = 100 # never go over 100 health
 
                 
     
