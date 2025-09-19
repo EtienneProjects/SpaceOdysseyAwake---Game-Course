@@ -327,25 +327,7 @@ class Ship(pygame.sprite.Sprite):
                 self.last_rocket_time = current_time
                 
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+            
       
       
       
