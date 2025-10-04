@@ -69,7 +69,7 @@ SPAWN_SINGLE_EVENT = pygame.USEREVENT + 2 # for staggered spawns
 spawn_interval = 12000 # 12 sec (60000 for 1 min)
 pygame.time.set_timer(SPAWN_EVENT, spawn_interval)
 
-wave_count = 10
+wave_count = 1
 pending_spawns = 0 # track how many enemies are left in current wave
 
 def spawn_enemy():
