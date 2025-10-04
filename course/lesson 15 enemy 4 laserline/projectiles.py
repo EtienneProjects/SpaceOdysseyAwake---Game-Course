@@ -279,6 +279,16 @@ class LaserLine(pygame.sprite.Sprite):
         # play fx 
         channel_sound = config.channel_8 if self.is_player else config.channel_9
         
+        
+         # stop if the ship is dead
+        if not self.ship.alive:
+            self.active = False
+            if channel_sound.get_busy():
+                channel_sound.stop()
+            return  # don’t continue update if ship object is dead
+        
+        
+        
         # FUel drain/recharge
         if self.active and self.fuel > 0: # drain fuel when active
             self.fuel -= self.fuel_drain_per_sec * delta
