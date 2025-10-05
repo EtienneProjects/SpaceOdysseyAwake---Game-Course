@@ -32,7 +32,7 @@ health_bar = shipClass.HealthBar(10, 10, player.health, player.health)
 def play_music(song_path):
     try:
         pygame.mixer.music.load(song_path)
-        pygame.mixer.music.set_volume(0) # main song volume
+        pygame.mixer.music.set_volume(0.6) # main song volume
         pygame.mixer.music.play()# play the song without looping
         print(f"Playing music: {song_path}") # for song print and debug
     except Exception as e:
