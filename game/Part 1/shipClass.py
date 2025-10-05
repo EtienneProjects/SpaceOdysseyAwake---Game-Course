@@ -102,6 +102,15 @@ class Ship(pygame.sprite.Sprite):
             dy *= 0.7071
             
             
+            
+            
+            
+        #apply movement on rect
+        self.rect.x += dx * self.velocity
+        self.rect.y += dy * self.velocity   
+            
+            
+            
         # clamp player on screen
         if self.rect.left < 0:
             self.rect.left = 0 # stop from going off to left
@@ -122,12 +131,9 @@ class Ship(pygame.sprite.Sprite):
             self.kill()
         
             
-        
+       # end of movement method 
             
-        
-        #apply movement on rect
-        self.rect.x += dx * self.velocity
-        self.rect.y += dy * self.velocity
+     
         
         
         
@@ -326,7 +332,59 @@ class Ship(pygame.sprite.Sprite):
                 )
                 self.last_rocket_time = current_time
                 
-      
+                
+                
+                
+                
+    def ai_shoot_enemy5(self, player, enemy_group, asteroid_group):
+        from projectiles import HeavyLaser
+        
+        # if not enemy 5 skip
+        if self.character_type != "enemy5":
+            return
+                
+        # give 1 second delay before firing
+        if pygame.time.get_ticks() - self.spawn_time < 1000:
+            return
+        
+        #detection rectangle
+        detection_rect = pygame.Rect(
+            self.rect.left -100,
+            self.rect.top,
+            self.rect.width + 100, # size of rect + 100px
+            700
+        )
+
+        if not detection_rect.colliderect(player.rect):
+            return # if not colliding rect vision with player rect
+        
+        now = pygame.time.get_ticks()
+        
+        # fire normal lasers
+        if now - getattr(self, "last_shot_time", 0) >= self.laser_cooldown:
+            left_pos = (self.rect.centerx - 10, self.rect.bottom - 25)
+            right_pos = (self.rect.centerx + 10, self.rect.bottom - 25)
+            for pos in [left_pos, right_pos]:
+                laser = Laser(self, player, enemy_group, asteroid_group)
+                laser.rect.midtop = pos
+                laser.prev_center = pygame.math.Vector2(laser.rect.center)
+                self.lasers.add(laser)
+            self.last_shot_time = now # assign time to reset check to current time 
+            
+            
+        # Heavy lasers
+        if now - getattr(self, "last_heavy_shot", 0) >= self.heavy_cooldown:
+            offset_y = 40
+            offset_x = 20
+            top_left_pos = (self.rect.left + offset_x, self.rect.top + offset_y) 
+            top_right_pos = (self.rect.right - offset_x, self.rect.top + offset_y)
+            for pos in [top_left_pos, top_right_pos]:
+                heavy = HeavyLaser(self, player, enemy_group, asteroid_group)
+                heavy.rect.midtop = pos
+                heavy.prev_center = pygame.math.Vector2(heavy.rect.center)
+                self.lasers.add(heavy)
+                
+            self.last_heavy_shot = now # reset time counter
             
       
       

@@ -46,7 +46,7 @@ play_music(song1_path)
 # background y scroll
 scroll_y = 0
 
-def draw_scrolling_bg(surface, image, state, speed=4):
+def draw_scrolling_bg(surface, image, state, speed=3):
     state['y'] += speed
     height = surface.get_height()
 
@@ -71,7 +71,7 @@ pending_spawns = 0 # track how many enemies are left in current wave
 def spawn_enemy():
     x = random.randint(80, config.SCREEN_WIDTH - 80)
     y = -50 # spawn above screen
-    enemy_type = random.choice(['enemy1', 'enemy2', 'enemy3'])
+    enemy_type = random.choice(['enemy1', 'enemy2', 'enemy3', 'enemy4','enemy5'])
     enemy = shipClass.Ship(enemy_type, x, y, 0.5, 1)
     enemy_group.add(enemy)
     
@@ -125,6 +125,8 @@ while playing:
         enemy.ai_shoot(player, enemy_group, asteroid_group) #ai_shooting plain laser
         enemy.ai_shoot_heavy(player, enemy_group, asteroid_group),
         enemy.ai_shoot_rocket(player, rockets_group, asteroid_group)
+        if enemy.character_type == "enemy5":
+            enemy.ai_shoot_enemy5(player, enemy_group, asteroid_group)
         
         
         
