@@ -204,7 +204,6 @@ class Rocket(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=shooter.rect.center)
         self.original_image = self.image.copy() # add to shrink rocket for black hole and quark star
         
-        
         #direction enemy or player +/-
         if shooter.character_type.startswith("enemy"):
             self.velocity = 4 # move for down the screen
