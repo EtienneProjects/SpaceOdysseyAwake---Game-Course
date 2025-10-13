@@ -149,11 +149,11 @@ class BlackHole(pygame.sprite.Sprite):
     """
     #globals
     PLAYER_ATTRACCTION_RANGE = 110
-    PLAYER_ATTRACCTION_STRENGTH = 1.8 # multiplies distance
+    PLAYER_ATTRACCTION_STRENGTH = 1.5 # multiplies distance
     AI_ATTRACTION_RANGE = 260
-    AI_ATTRACTION_STRENGTH = 0.02
-    ASTEROID_ATTRACTION_RANGE = 400
-    ASTEROID_ATTRACTION_STRENGTH = 0.04
+    AI_ATTRACTION_STRENGTH = 0.001
+    ASTEROID_ATTRACTION_RANGE = 290
+    ASTEROID_ATTRACTION_STRENGTH = 0.005
     
     CENTER_KILL_DISTANCE = 2
     MIN_SCALE = 0.05
@@ -291,8 +291,7 @@ class BlackHole(pygame.sprite.Sprite):
         else:
             range_limit = self.AI_ATTRACTION_RANGE
             
-        # return (abs(dx) <= range_limit) and (abs(dy) <= range_limit) (for square checking)
-        return (dx*dx + dy*dy) <= range_limit*range_limit # for a circular region of gravity pull
+        return (abs(dx) <= range_limit) and (abs(dy) <= range_limit)
                 
                 
     def apply_to_sprite(self, sprite, group=None):
@@ -318,7 +317,7 @@ class BlackHole(pygame.sprite.Sprite):
         # create fall in kill zone
         if distance <= self.CENTER_KILL_DISTANCE:
             if getattr(sprite, 'character_type', None) == 'player':
-                sprite.health -= 50
+                sprite.health -= 500
                 if sprite.health <= 0:
                     sprite.alive = False
             try:
@@ -331,13 +330,13 @@ class BlackHole(pygame.sprite.Sprite):
         # Attraction strength
         char_type = getattr(sprite, 'character_type', None)
         if char_type == 'player':
-            strength_multiplier = self.PLAYER_ATTRACCTION_STRENGTH # strong player attraction
+            strength_multiplier = 1.8 # strong player attraction
             range_limit = self.PLAYER_ATTRACCTION_RANGE
         elif char_type == 'asteroid':
-            strength_multiplier = self.ASTEROID_ATTRACTION_STRENGTH
+            strength_multiplier = 0.04
             range_limit = self.ASTEROID_ATTRACTION_RANGE
         else:
-            strength_multiplier = self.AI_ATTRACTION_STRENGTH
+            strength_multiplier = 0.02
             range_limit = self.AI_ATTRACTION_RANGE
             
         # apply gravity pull

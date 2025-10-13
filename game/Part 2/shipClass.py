@@ -1,4 +1,4 @@
-import pygame
+import pygame # type: ignore
 import config
 
 from projectiles import Laser, Rocket
@@ -14,14 +14,10 @@ class Ship(pygame.sprite.Sprite):
         self.health = 100 # ship and enemy health
         self.shield = 200
         
-        if self.character_type == "player":
-            self.health = 200
-        if self.character_type == "enemy4":
-            self.health = 200
-        if self.character_type == "enemy5":
-            self.health = 600
-        
-        
+        stats = config.ship_stats.get(self.character_type, {'health': 100, 'shield': -1})
+        self.health = stats.get('health', 100)
+        self.shield = stats.get('shield', -1)    
+            
         self.max_health = self.health # set max health to normal health for overflow
         self.max_shield = self.shield # set max shield to prevent shield from overflowing
         self.alive = True
@@ -84,6 +80,10 @@ class Ship(pygame.sprite.Sprite):
         #rockets
         self.last_rocket_time = 0
         self.rocket_cooldown = 1000 
+        
+        # plasma
+        self.last_plasma_time = 0
+        self.plasma_cooldown = 400 # (0.4)s
         
         
         
@@ -257,6 +257,10 @@ class Ship(pygame.sprite.Sprite):
                 
     # laser shoot check method for player and enemy
     def shoot_laser(self, target_player=None, target_enemy_group=None, asteroid_group=None):
+        
+        if asteroid_group is None:
+            return
+        
         current_time = pygame.time.get_ticks() # get time
         if current_time - self.laser_shot_time >= self.laser_cooldown:
             if self.character_type.startswith("enemy"):
@@ -320,6 +324,10 @@ class Ship(pygame.sprite.Sprite):
     
     def shoot_heavy(self, target_player=None, target_enemy_group=None, asteroid_group=None):
         from projectiles import HeavyLaser
+        
+        if target_enemy_group is None or asteroid_group is None:
+            return
+        
         
         """Fire heavy lasers """ 
         now = pygame.time.get_ticks()
@@ -544,12 +552,144 @@ class Ship(pygame.sprite.Sprite):
             
             
             
-      
-      
-      
-     
             
             
+    def shoot_plasma(self, target_group, asteroid_group, plasma_group):
+        from projectiles import Plasma
+        
+        now = pygame.time.get_ticks() # track time
+        
+        cooldown = self.plasma_cooldown
+        
+        if now - self.last_plasma_time >= cooldown:
+            # player center
+            center_x, center_y = self.rect.center
+            
+            # offset the plasma in x/y 
+            offstets = [(-24,14), (30, 26)]
+            
+            for x_off, y_off in offstets:
+                plasma = Plasma(self, target_group, asteroid_group)
+                
+                # apply offset to projectiles
+                plasma.rect.centerx = center_x + x_off
+                plasma.rect.centery = center_y + y_off
+                
+                plasma_group.add(plasma)
+                
+            self.last_plasma_time = now # keep track of new time for next event
+            config.channel_12.play(config.plasma_fx)
+            
+            
+            
+    def ai_shoot_plasma(self, player, asteroid_group, plasma_group):
+        
+        if self.character_type != "enemy6":
+            return
+        
+        from projectiles import Plasma
+        
+        now = pygame.time.get_ticks()
+        # detection area
+        detection_rect = pygame.Rect(
+            self.rect.centerx -50,
+            self.rect.bottom,
+            100,
+            690
+        )
+        if detection_rect.colliderect(player.rect):
+            cooldown = self.plasma_cooldown * 2
+            
+            if now - getattr(self, "last_plasma_time", 0) >= cooldown:
+                center_x, center_y = self.rect.center
+                offsets = [-10, 10] # left and right then lower by 5
+                
+                for x_off in offsets:
+                    plasma = Plasma(self, pygame.sprite.Group([player]), asteroid_group)
+                    
+                    # apply offsets
+                    plasma.rect.centerx = center_x + x_off
+                    plasma.rect.centery = center_y + 5
+                    
+                    plasma_group.add(plasma)
+                    
+                self.last_plasma_time = now
+                config.channel_12.play(config.plasma_fx)
+                    
+            
+            
+      
+    def ai_enemy7_shoot(self, player, enemy_group, asteroid_group, rockets_group, plasma_group):
+        """
+        - 2 plasma bolts
+        - 2 rockets
+        - 2 normal laser 
+        """ 
+
+        if self.character_type != "enemy7" or not self.alive:
+            return
+            
+        now = pygame.time.get_ticks()
+        
+        detection_rect = pygame.Rect(
+            self.rect.centerx -75, # 75 px to left
+            self.rect.bottom - 50, # 50 px above enemy bottom
+            150,                   # width
+            800                    # height
+        )
+        if not detection_rect.colliderect(player.rect):
+            return
+
+        # cooldowns 
+        plasma_cooldown = self.plasma_cooldown * 2
+        rocket_cooldown = self.rocket_cooldown * 2
+        laser_cooldown = self.laser_cooldown * 2
+        
+        # -- fire plasma --
+        if now - getattr(self, "last_plasma_time", 0) >= plasma_cooldown:
+            from projectiles import Plasma
+            
+            center_x, center_y = self.rect.center
+            offsets = [(-15, 10), (15,10)]
+            for x_off, y_off in offsets:
+                plasma = Plasma(self, pygame.sprite.Group([player]), asteroid_group)
+                plasma.rect.centerx = center_x + x_off
+                plasma.rect.centery = center_y + y_off
+                plasma_group.add(plasma)
+            self.last_plasma_time = now
+            config.channel_12.play(config.plasma_fx) 
+                       
+       
+        # rockets
+        if now - getattr(self, "last_rocket_time", 0) >= rocket_cooldown:
+            from projectiles import Rocket
+            
+            center_x, center_y = self.rect.center
+            offsets = [-60, 60]
+            for x_off in offsets:
+                rocket = Rocket(self, pygame.sprite.Group([player]), asteroid_group)
+                rocket.rect.centerx = center_x + x_off
+                rocket.rect.centery = center_y - 40
+                rockets_group.add(rocket)
+            self.last_rocket_time = now    
+            config.channel_5.play(config.rockets_fx)
+            
+            
+        # laser    
+        if now - getattr(self, "last_shot_time", 0) >= laser_cooldown:
+            from projectiles import Laser
+            
+            center_x, center_y = self.rect.center
+            offsets = [-26, 27]
+            for x_off in offsets:
+                laser = Laser(self, player, enemy_group, asteroid_group)
+                laser.rect.midtop = (self.rect.centerx + x_off, self.rect.bottom - 155)
+                laser.prev_center = pygame.math.Vector2(laser.rect.center)# lasers are vectors
+                self.lasers.add(laser)
+            self.last_shot_time = now    
+            config.laser_fx.play()
+            
+        
 class HealthBar():
     
     def __init__(self, healthBar_x, healthBar_y, health, max_health):
@@ -558,15 +698,22 @@ class HealthBar():
         self.health = health
         self.max_health = health
         
-    def draw(self, health):
+    def draw(self, health, shield=False):
         
-        from config import game_window, BLACK, CAYAN, WHITE
+        from config import game_window, BLACK, CAYAN, WHITE, RED, GREEN
         self.health = health
+        self.shield = shield
         #calculate health ratio
         ratio = self.health / self.max_health
-        pygame.draw.rect(game_window, BLACK, (self.healthBar_x -2, self.healthBar_y -2, 274, 9))
-        pygame.draw.rect(game_window, WHITE, (self.healthBar_x, self.healthBar_y, 270, 6))
-        pygame.draw.rect(game_window, CAYAN, (self.healthBar_x, self.healthBar_y, 270 * ratio, 6))
+        
+        if self.shield:
+            pygame.draw.rect(game_window, BLACK, (self.healthBar_x -2, self.healthBar_y -2, 174, 9))
+            pygame.draw.rect(game_window, WHITE, (self.healthBar_x, self.healthBar_y, 170, 6))
+            pygame.draw.rect(game_window, CAYAN, (self.healthBar_x, self.healthBar_y, 170 * ratio, 6))
+        else:
+            pygame.draw.rect(game_window, BLACK, (self.healthBar_x -2, self.healthBar_y -2, 174, 9))
+            pygame.draw.rect(game_window, RED, (self.healthBar_x, self.healthBar_y, 170, 6))
+            pygame.draw.rect(game_window, GREEN, (self.healthBar_x, self.healthBar_y, 170 * ratio, 6))
         
         
         
