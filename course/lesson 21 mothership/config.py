@@ -122,7 +122,7 @@ ship_stats = {
 
 motherShip_boss_waves = [5, 15, 25, 35, 45, 55, 60, 65, 70, 77, 79, 81, 89, 100]
 motherShip_boss_active = False
-
+mothership_wave = 0 # keep track of current wave and mothership wave to spawn only once per wave level
 
 
 
