@@ -40,8 +40,8 @@ def play_music(song_path):
         
 current_song = 'song1' # Track the current song
 is_paused = False # Track if the game music is paused or not
-song2_path = os.path.join('audio', 'Cyberpunk Gaming Energy by Infraction [No Copyright Music]  Let us Play [q-3xl6u34Ho].mp3')
-song1_path = os.path.join('audio', 'Dark Techno  EBM Industrial Type Beat WITCHTRIPPER Background Music [rQBNt7jWFAQ].mp3')
+song1_path = os.path.join('audio', 'Cyberpunk Gaming Energy by Infraction [No Copyright Music]  Let us Play [q-3xl6u34Ho].mp3')
+song2_path = os.path.join('audio', 'Dark Techno  EBM Industrial Type Beat WITCHTRIPPER Background Music [rQBNt7jWFAQ].mp3')
 
 # Play initial song on start
 play_music(song1_path)
@@ -154,7 +154,7 @@ def start_game():
 
     playing = True
     
-    wave_count = 9
+    wave_count = 1
     pending_spawns = 0 # track how many enemies are left in current wave
     # background y scroll
     scroll_y = 0
@@ -332,8 +332,6 @@ def start_game():
         menu.drawText(f'Score: {wave_count}', config.font, config.RED, 10, 1045)
         # wave count
     
-        
-        
         if getattr(config, "motherShip_boss_active", False):
             boss_present = any(e.character_type == "enemy8" for e in enemy_group) # keep track if there is a carrier mothership in the group(exist)
             if boss_present:
@@ -341,7 +339,6 @@ def start_game():
             # Only clear the flag if it was active and there are NO boss enemies left
             elif not boss_present and config.mothership_wave < wave_count : # if now carrier boss and we are in diffrent wave than boss spawn wave
                 config.motherShip_boss_active = False
-                
         
         
         # music switching logic
@@ -349,10 +346,7 @@ def start_game():
             if not pygame.mixer.music.get_busy(): # check if song is still playing
                 if current_song == 'song1':
                     current_song = 'song2'
-                    play_music(song1_path) 
-                elif current_song == 'song2':
-                    current_song = 'song3'
-                    play_music(song2_path)
+                    play_music(song2_path) 
                 else:
                     current_song = 'song1'
                     play_music(song1_path)  
@@ -399,13 +393,14 @@ def start_game():
             if event.type == SPAWN_EVENT:# 12s
                 # if next wave is a mothership 
                 if not getattr(config, "motherShip_boss_active", False) and wave_count in config.motherShip_boss_waves:
-                    mx = config. SCREEN_WIDTH
-                    my = 120
+                    mx = random.randint(80, config.SCREEN_WIDTH - 80)
+                    my = random.randint(80, config.SCREEN_HEIGHT - 80)
                     mothership = shipClass.Mothership(mx, my, scale=0.75, velocity=1.2)
                     enemy_group.add(mothership)
                     config.motherShip_boss_active = True
                     config.mothership_wave = wave_count # keep track of wave count to only spawn once per wave, if left out we spawn new enemy when old one dies 
-                else: 
+                else:
+                    
                     pending_spawns = wave_count # number to spawn this wave
                     wave_count += 1             # next wave is 1 larger
                     spawn_enemy()
