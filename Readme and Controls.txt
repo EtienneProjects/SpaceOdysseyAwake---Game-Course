@@ -5,6 +5,12 @@ W: Laser line (shoot cooldown)
 A: Laser
 S: Rocket
 D : Heavy Laser
+SPACE: Space strike attack
+
+
+Menu
+
+ENTER: Start/Restart
 
 
 Move
